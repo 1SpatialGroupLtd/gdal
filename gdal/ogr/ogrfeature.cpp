@@ -1070,7 +1070,7 @@ OGRFieldDefnH OGR_F_GetFieldDefnRef( OGRFeatureH hFeat, int i )
         return nullptr;
     }
 
-    return reinterpret_cast<OGRFieldDefnH>(poFeat->GetFieldDefnRef(i));
+    return OGRFieldDefn::ToHandle(poFeat->GetFieldDefnRef(i));
 }
 
 /************************************************************************/
@@ -1202,7 +1202,7 @@ OGRGeomFieldDefnH OGR_F_GetGeomFieldDefnRef( OGRFeatureH hFeat, int i )
 {
     VALIDATE_POINTER1( hFeat, "OGR_F_GetGeomFieldDefnRef", nullptr );
 
-    return reinterpret_cast<OGRGeomFieldDefnH>(
+    return OGRGeomFieldDefn::ToHandle(
         OGRFeature::FromHandle(hFeat)->GetGeomFieldDefnRef(i));
 }
 
