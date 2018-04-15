@@ -2205,7 +2205,8 @@ void CPL_STDCALL GDALGetOpenDatasets( GDALDatasetH **ppahDSList, int *pnCount )
     VALIDATE_POINTER0(ppahDSList, "GDALGetOpenDatasets");
     VALIDATE_POINTER0(pnCount, "GDALGetOpenDatasets");
 
-    *ppahDSList = (GDALDatasetH *)GDALDataset::GetOpenDatasets(pnCount);
+    *ppahDSList = reinterpret_cast<GDALDatasetH *>(
+        GDALDataset::GetOpenDatasets(pnCount));
 }
 
 /************************************************************************/
@@ -6350,7 +6351,7 @@ OGRFeatureH CPL_DLL GDALDatasetGetNextFeature( GDALDatasetH hDS,
 
     return OGRFeature::ToHandle(
         GDALDataset::FromHandle(hDS)
-            ->GetNextFeature((OGRLayer **)phBelongingLayer, pdfProgressPct,
+            ->GetNextFeature(reinterpret_cast<OGRLayer **>(phBelongingLayer), pdfProgressPct,
                              pfnProgress, pProgressData));
 }
 
