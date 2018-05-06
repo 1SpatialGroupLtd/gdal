@@ -99,7 +99,7 @@ CPL_CVSID("$Id$")
 /*                      Virtual Destructor                              */
 /************************************************************************/
 
-GDALRasterAttributeTable::~GDALRasterAttributeTable() {}
+GDALRasterAttributeTable::~GDALRasterAttributeTable() = default;
 
 /************************************************************************/
 /*                              ValuesIO()                              */
@@ -1100,7 +1100,7 @@ GDALRasterAttributeTableH CPL_STDCALL GDALCreateRasterAttributeTable()
 /*      All magic done by magic by the container destructors.           */
 /************************************************************************/
 
-GDALDefaultRasterAttributeTable::~GDALDefaultRasterAttributeTable() {}
+GDALDefaultRasterAttributeTable::~GDALDefaultRasterAttributeTable() = default;
 
 /************************************************************************/
 /*                  GDALDestroyRasterAttributeTable()                   */
@@ -1559,20 +1559,20 @@ void GDALDefaultRasterAttributeTable::SetRowCount( int nNewCount )
     if( nNewCount == nRowCount )
         return;
 
-    for( unsigned int iField = 0; iField < aoFields.size(); iField++ )
+    for( auto& oField: aoFields )
     {
-        switch( aoFields[iField].eType )
+        switch( oField.eType )
         {
           case GFT_Integer:
-            aoFields[iField].anValues.resize( nNewCount );
+            oField.anValues.resize( nNewCount );
             break;
 
           case GFT_Real:
-            aoFields[iField].adfValues.resize( nNewCount );
+            oField.adfValues.resize( nNewCount );
             break;
 
           case GFT_String:
-            aoFields[iField].aosValues.resize( nNewCount );
+            oField.aosValues.resize( nNewCount );
             break;
         }
     }
