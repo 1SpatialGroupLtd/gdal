@@ -4110,7 +4110,7 @@ void OGRFeature::SetField( int iField, int nCount, const int *panValues )
     else if( eType == OFTInteger64List )
     {
         std::vector<GIntBig> anValues;
-
+        anValues.reserve(nCount);
         for( int i = 0; i < nCount; i++ )
             anValues.push_back( panValues[i] );
         if( nCount > 0 )
@@ -4119,7 +4119,7 @@ void OGRFeature::SetField( int iField, int nCount, const int *panValues )
     else if( eType == OFTRealList )
     {
         std::vector<double> adfValues;
-
+        adfValues.reserve(nCount);
         for( int i = 0; i < nCount; i++ )
             adfValues.push_back( static_cast<double>(panValues[i]) );
         if( nCount > 0 )
@@ -4264,7 +4264,7 @@ void OGRFeature::SetField( int iField, int nCount, const GIntBig *panValues )
     else if( eType == OFTRealList )
     {
         std::vector<double> adfValues;
-
+        adfValues.reserve(nCount);
         for( int i = 0; i < nCount; i++ )
             adfValues.push_back( static_cast<double>(panValues[i]) );
         if( nCount > 0 )
@@ -4387,7 +4387,7 @@ void OGRFeature::SetField( int iField, int nCount, const double * padfValues )
     else if( eType == OFTIntegerList )
     {
         std::vector<int> anValues;
-
+        anValues.reserve(nCount);
         for( int i = 0; i < nCount; i++ )
             anValues.push_back( static_cast<int>(padfValues[i]) );
 
@@ -4397,7 +4397,7 @@ void OGRFeature::SetField( int iField, int nCount, const double * padfValues )
     else if( eType == OFTInteger64List )
     {
         std::vector<GIntBig> anValues;
-
+        anValues.reserve(nCount);
         for( int i = 0; i < nCount; i++ )
             anValues.push_back( static_cast<GIntBig>(padfValues[i]) );
         if( nCount > 0 )
@@ -6948,9 +6948,7 @@ OGRFeature::ConstFieldIterator::ConstFieldIterator(const OGRFeature* poSelf, int
     m_poPrivate->m_nPos = nPos;
 }
 
-OGRFeature::ConstFieldIterator::~ConstFieldIterator()
-{
-}
+OGRFeature::ConstFieldIterator::~ConstFieldIterator() = default;
 
 const OGRFeature::FieldValue& OGRFeature::ConstFieldIterator::operator*() const
 {
@@ -7155,9 +7153,7 @@ void OGRFeature::FieldValue::clear()
 }
 
 //! @cond Doxygen_Suppress
-OGRFeature::FieldValue::~FieldValue()
-{
-}
+OGRFeature::FieldValue::~FieldValue() = default;
 
 //! @endcond
 
@@ -7257,7 +7253,7 @@ const std::vector<std::string>& OGRFeature::FieldValue::GetAsStringList() const
     {
         for( char** papszIter = papszList; *papszIter; ++papszIter )
         {
-            m_poPrivate->m_aosList.push_back(std::string(*papszIter));
+            m_poPrivate->m_aosList.emplace_back(*papszIter);
         }
     }
     return m_poPrivate->m_aosList;
