@@ -6948,7 +6948,7 @@ GDALDataset::Layers::Iterator::Iterator(const Iterator& oOther):
 {
 }
 
-GDALDataset::Layers::Iterator::Iterator(Iterator&& oOther):
+GDALDataset::Layers::Iterator::Iterator(Iterator&& oOther) noexcept:
     m_poPrivate(std::move(oOther.m_poPrivate))
 {
 }
@@ -6981,7 +6981,7 @@ GDALDataset::Layers::Iterator& GDALDataset::Layers::Iterator::operator=(
 }
 
 GDALDataset::Layers::Iterator& GDALDataset::Layers::Iterator::operator=(
-                                GDALDataset::Layers::Iterator&& oOther)
+                                GDALDataset::Layers::Iterator&& oOther) noexcept
 {
     m_poPrivate = std::move(oOther.m_poPrivate);
     return *this;
