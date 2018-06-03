@@ -441,7 +441,9 @@ CPLXMLNode *LERC_Band::GetMRFConfig(GDALOpenInfo *poOpenInfo)
     if (poOpenInfo->eAccess != GA_ReadOnly
         || poOpenInfo->pszFilename == nullptr
         || poOpenInfo->pabyHeader == nullptr
-        || strlen(poOpenInfo->pszFilename) < 2)
+        || strlen(poOpenInfo->pszFilename) < 2
+        // Header of Lerc2 takes 58 bytes, an emtpy area 62.  Lerc 1 empty file is 67.
+        || poOpenInfo->nHeaderBytes < static_cast<int>(Lerc2::ComputeNumBytesHeader()))
         return nullptr;
 
     // Check the header too
