@@ -40,6 +40,7 @@
 #include <map>
 #include <new>
 #include <string>
+#include <unordered_set>
 #include <utility>
 
 #include "cpl_conv.h"
@@ -2694,22 +2695,25 @@ GDALDatasetH CPL_STDCALL GDALOpenEx( const char *pszFilename,
     oOpenInfo.papszAllowedDrivers = papszAllowedDrivers;
 
     // Prevent infinite recursion.
+    struct AntiRecursionStruct
     {
-        int *pnRecCount =
-            static_cast<int *>(CPLGetTLS(CTLS_GDALDATASET_REC_PROTECT_MAP));
-        if( pnRecCount == nullptr )
-        {
-            pnRecCount = static_cast<int *>(CPLMalloc(sizeof(int)));
-            *pnRecCount = 0;
-            CPLSetTLS(CTLS_GDALDATASET_REC_PROTECT_MAP, pnRecCount, TRUE);
-        }
-        if( *pnRecCount == 100 )
-        {
-            CPLError(CE_Failure, CPLE_AppDefined,
-                     "GDALOpen() called with too many recursion levels");
-            return nullptr;
-        }
-        (*pnRecCount)++;
+        std::unordered_set<std::string> aosDatasetNames{};
+        int nRecLevel = 0;
+    };
+    static thread_local AntiRecursionStruct sAntiRecursion;
+    if( sAntiRecursion.nRecLevel == 100 )
+    {
+        CPLError(CE_Failure, CPLE_AppDefined,
+                    "GDALOpen() called with too many recursion levels");
+        return nullptr;
+    }
+    if( sAntiRecursion.aosDatasetNames.find(
+            std::string(pszFilename)) !=
+                sAntiRecursion.aosDatasetNames.end() )
+    {
+        CPLError(CE_Failure, CPLE_AppDefined,
+                    "GDALOpen() called with recursively");
+        return nullptr;
     }
 
     // Remove leading @ if present.
@@ -2750,6 +2754,11 @@ GDALDatasetH CPL_STDCALL GDALOpenEx( const char *pszFilename,
             (nOpenFlags & GDAL_OF_RASTER) == 0 &&
             poDriver->GetMetadataItem(GDAL_DCAP_VECTOR) == nullptr )
             continue;
+        if( poDriver->pfnOpen == nullptr &&
+            poDriver->pfnOpenWithDriverArg == nullptr )
+        {
+            continue;
+        }
 
         // Remove general OVERVIEW_LEVEL open options from list before passing
         // it to the driver, if it isn't a driver specific option already.
@@ -2785,6 +2794,9 @@ GDALDatasetH CPL_STDCALL GDALOpenEx( const char *pszFilename,
         CPLErrorReset();
 #endif
 
+        sAntiRecursion.nRecLevel ++;
+        sAntiRecursion.aosDatasetNames.insert(std::string(pszFilename));
+
         GDALDataset *poDS = nullptr;
         if ( poDriver->pfnOpen != nullptr )
         {
@@ -2798,13 +2810,9 @@ GDALDatasetH CPL_STDCALL GDALOpenEx( const char *pszFilename,
         {
             poDS = poDriver->pfnOpenWithDriverArg(poDriver, &oOpenInfo);
         }
-        else
-        {
-            CSLDestroy(papszTmpOpenOptions);
-            CSLDestroy(papszTmpOpenOptionsToValidate);
-            oOpenInfo.papszOpenOptions = papszOpenOptionsCleaned;
-            continue;
-        }
+
+        sAntiRecursion.nRecLevel --;
+        sAntiRecursion.aosDatasetNames.erase(std::string(pszFilename));
 
         CSLDestroy(papszTmpOpenOptions);
         CSLDestroy(papszTmpOpenOptionsToValidate);
@@ -2842,11 +2850,6 @@ GDALDatasetH CPL_STDCALL GDALOpenEx( const char *pszFilename,
 
                 poDS->AddToDatasetOpenList();
             }
-
-            int *pnRecCount =
-                static_cast<int *>(CPLGetTLS(CTLS_GDALDATASET_REC_PROTECT_MAP));
-            if( pnRecCount )
-                (*pnRecCount)--;
 
             if( nOpenFlags & GDAL_OF_SHARED )
             {
@@ -2908,11 +2911,6 @@ GDALDatasetH CPL_STDCALL GDALOpenEx( const char *pszFilename,
 #else
         if( CPLGetLastErrorNo() != 0 && CPLGetLastErrorType() > CE_Warning)
         {
-            int *pnRecCount =
-                static_cast<int *>(CPLGetTLS(CTLS_GDALDATASET_REC_PROTECT_MAP));
-            if( pnRecCount )
-                (*pnRecCount)--;
-
             CSLDestroy(papszOpenOptionsCleaned);
             return nullptr;
         }
@@ -2944,11 +2942,6 @@ GDALDatasetH CPL_STDCALL GDALOpenEx( const char *pszFilename,
             }
         }
     }
-
-    int *pnRecCount =
-        static_cast<int *>(CPLGetTLS(CTLS_GDALDATASET_REC_PROTECT_MAP));
-    if( pnRecCount )
-        (*pnRecCount)--;
 
     return nullptr;
 }
