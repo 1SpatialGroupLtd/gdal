@@ -2697,7 +2697,31 @@ GDALDatasetH CPL_STDCALL GDALOpenEx( const char *pszFilename,
     // Prevent infinite recursion.
     struct AntiRecursionStruct
     {
-        std::set<std::pair<std::string, int>> aosDatasetNamesWithFlags{};
+        struct DatasetContext
+        {
+            std::string osFilename;
+            int         nOpenFlags;
+            int         nSizeAllowedDrivers;
+
+            DatasetContext(const std::string& osFilenameIn,
+                           int nOpenFlagsIn,
+                           int nSizeAllowedDriversIn) :
+                osFilename(osFilenameIn),
+                nOpenFlags(nOpenFlagsIn),
+                nSizeAllowedDrivers(nSizeAllowedDriversIn) {}
+        };
+
+        struct DatasetContextCompare {
+            bool operator() (const DatasetContext& lhs, const DatasetContext& rhs) const {
+                return lhs.osFilename < rhs.osFilename ||
+                       (lhs.osFilename == rhs.osFilename &&
+                        (lhs.nOpenFlags < rhs.nOpenFlags ||
+                         (lhs.nOpenFlags == rhs.nOpenFlags &&
+                          lhs.nSizeAllowedDrivers < rhs.nSizeAllowedDrivers)));
+            }
+        };
+
+        std::set<DatasetContext, DatasetContextCompare> aosDatasetNamesWithFlags{};
         int nRecLevel = 0;
     };
     static thread_local AntiRecursionStruct sAntiRecursion;
@@ -2707,8 +2731,10 @@ GDALDatasetH CPL_STDCALL GDALOpenEx( const char *pszFilename,
                     "GDALOpen() called with too many recursion levels");
         return nullptr;
     }
-    if( sAntiRecursion.aosDatasetNamesWithFlags.find(
-            std::pair<std::string, int>(std::string(pszFilename), nOpenFlags)) !=
+
+    auto dsCtxt = AntiRecursionStruct::DatasetContext(
+        std::string(pszFilename), nOpenFlags, CSLCount(papszAllowedDrivers));
+    if( sAntiRecursion.aosDatasetNamesWithFlags.find(dsCtxt) !=
                 sAntiRecursion.aosDatasetNamesWithFlags.end() )
     {
         CPLError(CE_Failure, CPLE_AppDefined,
@@ -2795,8 +2821,7 @@ GDALDatasetH CPL_STDCALL GDALOpenEx( const char *pszFilename,
 #endif
 
         sAntiRecursion.nRecLevel ++;
-        sAntiRecursion.aosDatasetNamesWithFlags.insert(
-            std::pair<std::string, int>(std::string(pszFilename), nOpenFlags));
+        sAntiRecursion.aosDatasetNamesWithFlags.insert(dsCtxt);
 
         GDALDataset *poDS = nullptr;
         if ( poDriver->pfnOpen != nullptr )
@@ -2813,8 +2838,7 @@ GDALDatasetH CPL_STDCALL GDALOpenEx( const char *pszFilename,
         }
 
         sAntiRecursion.nRecLevel --;
-        sAntiRecursion.aosDatasetNamesWithFlags.erase(
-            std::pair<std::string, int>(std::string(pszFilename), nOpenFlags));
+        sAntiRecursion.aosDatasetNamesWithFlags.erase(dsCtxt);
 
         CSLDestroy(papszTmpOpenOptions);
         CSLDestroy(papszTmpOpenOptionsToValidate);
