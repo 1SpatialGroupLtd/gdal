@@ -4503,7 +4503,8 @@ void OGRFeature::SetField( int iField, const char * const * papszValues )
     OGRFieldType eType = poFDefn->GetType();
     if( eType == OFTStringList )
     {
-        if( papszValues != pauFields[iField].StringList.paList )
+        if( !IsFieldSetAndNotNull(iField) ||
+            papszValues != pauFields[iField].StringList.paList )
         {
             OGRField uField;
 
