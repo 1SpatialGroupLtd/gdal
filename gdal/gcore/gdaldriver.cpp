@@ -326,6 +326,21 @@ CPLErr GDALDriver::DefaultCopyMasks( GDALDataset *poSrcDS,
                                      int bStrict )
 
 {
+    return DefaultCopyMasks(poSrcDS, poDstDS, bStrict,
+                            nullptr, nullptr, nullptr);
+}
+
+CPLErr GDALDriver::DefaultCopyMasks( GDALDataset *poSrcDS,
+                                     GDALDataset *poDstDS,
+                                     int bStrict,
+                                     CSLConstList /*papszOptions*/,
+                                     GDALProgressFunc pfnProgress,
+                                     void * pProgressData )
+
+{
+    if( pfnProgress == nullptr )
+        pfnProgress = GDALDummyProgress;
+
     int nBands = poSrcDS->GetRasterCount();
     if (nBands == 0)
         return CE_None;
@@ -336,6 +351,20 @@ CPLErr GDALDriver::DefaultCopyMasks( GDALDataset *poSrcDS,
     const char* papszOptions[2] = { "COMPRESSED=YES", nullptr };
     CPLErr eErr = CE_None;
 
+    int nTotalBandsWithMask = 0;
+    for( int iBand = 0; iBand < nBands; ++iBand )
+    {
+        GDALRasterBand *poSrcBand = poSrcDS->GetRasterBand( iBand+1 );
+
+        int nMaskFlags = poSrcBand->GetMaskFlags();
+        if( !(nMaskFlags &
+                 (GMF_ALL_VALID|GMF_PER_DATASET|GMF_ALPHA|GMF_NODATA) ) )
+        {
+            nTotalBandsWithMask ++;
+        }
+    }
+
+    int iBandWithMask = 0;
     for( int iBand = 0;
          eErr == CE_None && iBand < nBands;
          ++iBand )
@@ -353,11 +382,16 @@ CPLErr GDALDriver::DefaultCopyMasks( GDALDataset *poSrcDS,
                 eErr = poDstBand->CreateMaskBand( nMaskFlags );
                 if( eErr == CE_None )
                 {
+                    void* pScaledData = GDALCreateScaledProgress(
+                        double(iBandWithMask) / nTotalBandsWithMask,
+                        double(iBandWithMask + 1) / nTotalBandsWithMask,
+                        pfnProgress, pProgressData );
                     eErr = GDALRasterBandCopyWholeRaster(
                         poSrcBand->GetMaskBand(),
                         poDstBand->GetMaskBand(),
                         papszOptions,
-                        GDALDummyProgress, nullptr);
+                        GDALScaledProgress, pScaledData);
+                    GDALDestroyScaledProgress(pScaledData);
                 }
                 else if( !bStrict )
                 {
@@ -382,7 +416,7 @@ CPLErr GDALDriver::DefaultCopyMasks( GDALDataset *poSrcDS,
                 poSrcDS->GetRasterBand(1)->GetMaskBand(),
                 poDstDS->GetRasterBand(1)->GetMaskBand(),
                 papszOptions,
-                GDALDummyProgress, nullptr);
+                pfnProgress, pProgressData);
         }
         else if( !bStrict )
         {
