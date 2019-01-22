@@ -4473,7 +4473,8 @@ void OGR_F_SetFieldDoubleList( OGRFeatureH hFeat, int iField,
  * a new feature, OGR_L_CreateFeature() must be used afterwards.
  *
  * @param pszFName the name of the field to set.
- * @param papszValues the values to assign.
+ * @param papszValues the values to assign. List of NUL-terminated string, ending
+ * with a NULL pointer.
  */
 
 /**
@@ -4489,7 +4490,8 @@ void OGR_F_SetFieldDoubleList( OGRFeatureH hFeat, int iField,
  * a new feature, OGR_L_CreateFeature() must be used afterwards.
  *
  * @param iField the field to set, from 0 to GetFieldCount()-1.
- * @param papszValues the values to assign.
+ * @param papszValues the values to assign. List of NUL-terminated string, ending
+ * with a NULL pointer.
  */
 
 void OGRFeature::SetField( int iField, const char * const * papszValues )
@@ -4562,7 +4564,7 @@ void OGRFeature::SetField( int iField, const char * const * papszValues )
     else if( eType == OFTRealList )
     {
         const int nValues = CSLCount(papszValues);
-        double* padfValues = static_cast<double *>(
+        double* padfValues = OGRFeature::SetField( const char* pszFName,  const char * const * papszValues )static_cast<double *>(
             VSI_MALLOC_VERBOSE(nValues * sizeof(double)) );
         if( padfValues == nullptr )
             return;
@@ -4593,7 +4595,8 @@ void OGRFeature::SetField( int iField, const char * const * papszValues )
  *
  * @param hFeat handle to the feature that owned the field.
  * @param iField the field to set, from 0 to GetFieldCount()-1.
- * @param papszValues the values to assign.
+ * @param papszValues the values to assign. List of NUL-terminated string, ending
+ * with a NULL pointer.
  */
 
 void OGR_F_SetFieldStringList( OGRFeatureH hFeat, int iField,
