@@ -1093,6 +1093,7 @@ CPLErr GDALDataset::OldSetProjectionFromSetSpatialRef(
     char* pszWKT = nullptr;
     if( poSRS->exportToWkt(&pszWKT) != OGRERR_NONE )
     {
+        CPLFree(pszWKT);
         return CE_Failure;
     }
     auto ret = _SetProjection(pszWKT);
@@ -1823,6 +1824,7 @@ CPLErr GDALDataset::OldSetGCPsFromNew(
     char* pszWKT = nullptr;
     if( poGCP_SRS->exportToWkt(&pszWKT) != OGRERR_NONE )
     {
+        CPLFree(pszWKT);
         return CE_Failure;
     }
     auto ret = _SetGCPs(nGCPCount, pasGCPList, pszWKT);
