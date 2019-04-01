@@ -738,7 +738,7 @@ int CPL_STDCALL GDALGetRasterYSize( GDALDatasetH hDataset )
 /**
 
  \brief Fetch a band object for a dataset.
- 
+
  See GetBands() for a C++ iterator version of this method.
 
  Equivalent of the C function GDALGetRasterBand().
@@ -2775,6 +2775,9 @@ CPLErr GDALDataset::AdviseRead( int nXOff, int nYOff, int nXSize, int nYSize,
             poBand = GetRasterBand(iBand + 1);
         else
             poBand = GetRasterBand(panBandMap[iBand]);
+
+        if ( poBand == nullptr )
+            return CE_Failure;
 
         eErr = poBand->AdviseRead(nXOff, nYOff, nXSize, nYSize, nBufXSize,
                                   nBufYSize, eBufType, papszOptions);
@@ -6527,7 +6530,7 @@ int GDALDataset::GetLayerCount() { return 0; }
 
  The returned layer remains owned by the
  GDALDataset and should not be deleted by the application.
- 
+
  See GetLayers() for a C++ iterator version of this method.
 
  This method is the same as the C function GDALDatasetGetLayer() and the
