@@ -121,6 +121,8 @@ class GDALDataset::Private
     char               *m_pszWKTGCPCached = nullptr;
     OGRSpatialReference *m_poSRSGCPCached = nullptr;
 
+    GDALDataset* poParentDataset = nullptr;
+
     Private() = default;
 };
 
@@ -7160,14 +7162,39 @@ OGRErr GDALDatasetRollbackTransaction( GDALDatasetH hDS )
     return GDALDataset::FromHandle(hDS)->RollbackTransaction();
 }
 
+
+//! @cond Doxygen_Suppress
+
+/************************************************************************/
+/*                   ShareLockWithParentDataset()                       */
+/************************************************************************/
+
+/* To be used typically by the GTiff driver to link overview datasets */
+/* with their main dataset, so that they share the same lock */
+/* Cf https://github.com/OSGeo/gdal/issues/1488 */
+/* The parent dataset should remain alive while the this dataset is alive */
+
+void GDALDataset::ShareLockWithParentDataset(GDALDataset* poParentDataset)
+{
+    if( m_poPrivate != nullptr )
+    {
+        m_poPrivate->poParentDataset = poParentDataset;
+    }
+}
+
 /************************************************************************/
 /*                          EnterReadWrite()                            */
 /************************************************************************/
 
-//! @cond Doxygen_Suppress
 int GDALDataset::EnterReadWrite(GDALRWFlag eRWFlag)
 {
-    if( m_poPrivate != nullptr && eAccess == GA_Update )
+    if( m_poPrivate == nullptr )
+        return FALSE;
+
+    if( m_poPrivate->poParentDataset )
+        return m_poPrivate->poParentDataset->EnterReadWrite(eRWFlag);
+
+    if( eAccess == GA_Update )
     {
         if( m_poPrivate->eStateReadWriteMutex == GDALAllowReadWriteMutexState::RW_MUTEX_STATE_UNKNOWN )
         {
@@ -7184,8 +7211,7 @@ int GDALDataset::EnterReadWrite(GDALRWFlag eRWFlag)
                 m_poPrivate->eStateReadWriteMutex = GDALAllowReadWriteMutexState::RW_MUTEX_STATE_DISABLED;
             }
         }
-        if( m_poPrivate->eStateReadWriteMutex == GDALAllowReadWriteMutexState::RW_MUTEX_STATE_ALLOWED &&
-            (eRWFlag == GF_Write || m_poPrivate->hMutex != nullptr) )
+        if( m_poPrivate->eStateReadWriteMutex == GDALAllowReadWriteMutexState::RW_MUTEX_STATE_ALLOWED )
         {
             // There should be no race related to creating this mutex since
             // it should be first created through IWriteBlock() / IRasterIO()
@@ -7212,6 +7238,12 @@ void GDALDataset::LeaveReadWrite()
 {
     if( m_poPrivate )
     {
+        if( m_poPrivate->poParentDataset )
+        {
+            m_poPrivate->poParentDataset->LeaveReadWrite();
+            return;
+        }
+
         m_poPrivate->oMapThreadToMutexTakenCount[CPLGetPID()]--;
         CPLReleaseMutex(m_poPrivate->hMutex);
 #ifdef DEBUG_VERBOSE
@@ -7229,6 +7261,12 @@ void GDALDataset::InitRWLock()
 {
     if( m_poPrivate )
     {
+        if( m_poPrivate->poParentDataset )
+        {
+            m_poPrivate->poParentDataset->InitRWLock();
+            return;
+        }
+
         if( m_poPrivate->eStateReadWriteMutex == GDALAllowReadWriteMutexState::RW_MUTEX_STATE_UNKNOWN )
         {
             if( EnterReadWrite(GF_Write) )
@@ -7249,6 +7287,12 @@ void GDALDataset::DisableReadWriteMutex()
 {
     if( m_poPrivate )
     {
+        if( m_poPrivate->poParentDataset )
+        {
+            m_poPrivate->poParentDataset->DisableReadWriteMutex();
+            return;
+        }
+
         m_poPrivate->eStateReadWriteMutex = GDALAllowReadWriteMutexState::RW_MUTEX_STATE_DISABLED;
     }
 }
@@ -7259,7 +7303,16 @@ void GDALDataset::DisableReadWriteMutex()
 
 void GDALDataset::TemporarilyDropReadWriteLock()
 {
-    if( m_poPrivate && m_poPrivate->hMutex )
+    if( m_poPrivate == nullptr )
+        return;
+
+    if( m_poPrivate->poParentDataset )
+    {
+        m_poPrivate->poParentDataset->TemporarilyDropReadWriteLock();
+        return;
+    }
+
+    if( m_poPrivate->hMutex )
     {
 #ifdef DEBUG_VERBOSE
         CPLDebug("GDAL", "[Thread " CPL_FRMT_GIB "] "
@@ -7284,7 +7337,16 @@ void GDALDataset::TemporarilyDropReadWriteLock()
 
 void GDALDataset::ReacquireReadWriteLock()
 {
-    if( m_poPrivate && m_poPrivate->hMutex )
+    if( m_poPrivate == nullptr )
+        return;
+
+    if( m_poPrivate->poParentDataset )
+    {
+        m_poPrivate->poParentDataset->ReacquireReadWriteLock();
+        return;
+    }
+
+    if( m_poPrivate->hMutex )
     {
 #ifdef DEBUG_VERBOSE
         CPLDebug("GDAL", "[Thread " CPL_FRMT_GIB "] "
@@ -7314,6 +7376,11 @@ int GDALDataset::AcquireMutex()
 {
     if( m_poPrivate == nullptr )
         return 0;
+    if( m_poPrivate->poParentDataset )
+    {
+        return m_poPrivate->poParentDataset->AcquireMutex();
+    }
+
     return CPLCreateOrAcquireMutex(&(m_poPrivate->hMutex), 1000.0);
 }
 
@@ -7324,7 +7391,15 @@ int GDALDataset::AcquireMutex()
 void GDALDataset::ReleaseMutex()
 {
     if( m_poPrivate )
+    {
+        if( m_poPrivate->poParentDataset )
+        {
+            m_poPrivate->poParentDataset->ReleaseMutex();
+            return;
+        }
+
         CPLReleaseMutex(m_poPrivate->hMutex);
+    }
 }
 //! @endcond
 
