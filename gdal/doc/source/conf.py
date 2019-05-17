@@ -95,6 +95,13 @@ man_pages = [
         1
     ),
     (
+        'programs/gdaladdo',
+        'gdaladdo',
+        u'Builds or rebuilds overview images.',
+        ['Frank Warmerdam <warmerdam@pobox.com>, Silke Reimer <silke@intevation.de>'],
+        1
+    ),
+    (
         'programs/gnmmanage',
         'gnmmanage',
         u'Manages networks',
