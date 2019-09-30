@@ -3297,7 +3297,8 @@ GDALDatasetH CPL_STDCALL GDALOpenEx( const char *pszFilename,
 
     oOpenInfo.papszOpenOptions = papszOpenOptionsCleaned;
 
-    for( int iDriver = -1; iDriver < poDM->GetDriverCount(); ++iDriver )
+    const int nDriverCount = poDM->GetDriverCount();
+    for( int iDriver = -1; iDriver < nDriverCount; ++iDriver )
     {
         GDALDriver *poDriver = nullptr;
 
@@ -3497,7 +3498,12 @@ GDALDatasetH CPL_STDCALL GDALOpenEx( const char *pszFilename,
         // If not, return a more generic error.
         if(!VSIToCPLError(CE_Failure, CPLE_OpenFailed))
         {
-            if( oOpenInfo.bStatOK )
+            if( nDriverCount == 0 )
+            {
+                CPLError(CE_Failure, CPLE_OpenFailed,
+                         "No driver registered.");
+            }
+            else if( oOpenInfo.bStatOK )
             {
                 CPLError(CE_Failure, CPLE_OpenFailed,
                          "`%s' not recognized as a supported file format.",
