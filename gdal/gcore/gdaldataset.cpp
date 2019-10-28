@@ -3084,9 +3084,9 @@ static void FreeAntiRecursion( void* pData )
 static AntiRecursionStruct& GetAntiRecursion()
 {
     static AntiRecursionStruct dummy;
-    int bMemoryErrorOccured = false;
-    void* pData = CPLGetTLSEx(CTLS_GDALOPEN_ANTIRECURSION, &bMemoryErrorOccured);
-    if( bMemoryErrorOccured )
+    int bMemoryErrorOccurred = false;
+    void* pData = CPLGetTLSEx(CTLS_GDALOPEN_ANTIRECURSION, &bMemoryErrorOccurred);
+    if( bMemoryErrorOccurred )
     {
         return dummy;
     }
@@ -3095,8 +3095,8 @@ static AntiRecursionStruct& GetAntiRecursion()
         auto pAntiRecursion = new AntiRecursionStruct();
         CPLSetTLSWithFreeFuncEx( CTLS_GDALOPEN_ANTIRECURSION,
                                  pAntiRecursion,
-                                 FreeAntiRecursion, &bMemoryErrorOccured );
-        if( bMemoryErrorOccured )
+                                 FreeAntiRecursion, &bMemoryErrorOccurred );
+        if( bMemoryErrorOccurred )
         {
             delete pAntiRecursion;
             return dummy;
