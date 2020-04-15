@@ -250,7 +250,10 @@ GDALDataset * GDALDriver::Create( const char * pszFilename,
         if( !EQUAL(GetDescription(), "MEM") &&
             !EQUAL(GetDescription(), "Memory") )
         {
-            QuietDelete( pszFilename );
+            char** papszAllowedDrivers = nullptr;
+            papszAllowedDrivers = CSLAddString(papszAllowedDrivers, GetDescription() );
+            QuietDelete( pszFilename, papszAllowedDrivers );
+            CSLDestroy( papszAllowedDrivers );
         }
     }
 
@@ -1020,7 +1023,10 @@ GDALDataset *GDALDriver::CreateCopy( const char * pszFilename,
         if( !EQUAL(GetDescription(), "MEM") &&
             !EQUAL(GetDescription(), "Memory") )
         {
-            QuietDelete( pszFilename );
+            char** papszAllowedDrivers = nullptr;
+            papszAllowedDrivers = CSLAddString(papszAllowedDrivers, GetDescription() );
+            QuietDelete( pszFilename, papszAllowedDrivers );
+            CSLDestroy( papszAllowedDrivers );
         }
     }
 
@@ -1159,10 +1165,14 @@ GDALDatasetH CPL_STDCALL GDALCreateCopy( GDALDriverH hDriver,
  * using Identify().
  *
  * @param pszName the dataset name to try and delete.
+ * @param papszAllowedDrivers NULL to consider all candidate drivers, or a NULL
+ * terminated list of strings with the driver short names that must be
+ * considered.
  * @return CE_None if the dataset does not exist, or is deleted without issues.
  */
 
-CPLErr GDALDriver::QuietDelete( const char *pszName )
+CPLErr GDALDriver::QuietDelete( const char *pszName,
+                                const char *const *papszAllowedDrivers )
 
 {
     VSIStatBufL sStat;
@@ -1185,7 +1195,7 @@ CPLErr GDALDriver::QuietDelete( const char *pszName )
 
     CPLPushErrorHandler(CPLQuietErrorHandler);
     GDALDriver * const poDriver =
-        GDALDriver::FromHandle( GDALIdentifyDriver( pszName, nullptr ) );
+        GDALDriver::FromHandle( GDALIdentifyDriver( pszName, papszAllowedDrivers ) );
     CPLPopErrorHandler();
 
     if( poDriver == nullptr )
