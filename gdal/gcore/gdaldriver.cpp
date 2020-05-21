@@ -208,10 +208,7 @@ GDALDataset * GDALDriver::Create( const char * pszFilename,
         if( !EQUAL(GetDescription(), "MEM") &&
             !EQUAL(GetDescription(), "Memory") )
         {
-            char** papszAllowedDrivers = nullptr;
-            papszAllowedDrivers = CSLAddString(papszAllowedDrivers, GetDescription() );
-            QuietDelete( pszFilename, papszAllowedDrivers );
-            CSLDestroy( papszAllowedDrivers );
+            QuietDelete( pszFilename );
         }
     }
 
@@ -947,10 +944,7 @@ GDALDataset *GDALDriver::CreateCopy( const char * pszFilename,
         if( !EQUAL(GetDescription(), "MEM") &&
             !EQUAL(GetDescription(), "Memory") )
         {
-            char** papszAllowedDrivers = nullptr;
-            papszAllowedDrivers = CSLAddString(papszAllowedDrivers, GetDescription() );
-            QuietDelete( pszFilename, papszAllowedDrivers );
-            CSLDestroy( papszAllowedDrivers );
+            QuietDelete( pszFilename );
         }
     }
 
@@ -1091,7 +1085,7 @@ GDALDatasetH CPL_STDCALL GDALCreateCopy( GDALDriverH hDriver,
  * @param pszName the dataset name to try and delete.
  * @param papszAllowedDrivers NULL to consider all candidate drivers, or a NULL
  * terminated list of strings with the driver short names that must be
- * considered.
+ * considered. (Note: functionality currently broken. Argument considered as NULL)
  * @return CE_None if the dataset does not exist, or is deleted without issues.
  */
 
@@ -1099,6 +1093,9 @@ CPLErr GDALDriver::QuietDelete( const char *pszName,
                                 const char *const *papszAllowedDrivers )
 
 {
+    // FIXME! GDALIdentifyDriver() accepts a file list, not a driver list
+    CPL_IGNORE_RET_VAL(papszAllowedDrivers);
+
     VSIStatBufL sStat;
     const bool bExists =
         VSIStatExL(pszName, &sStat,
@@ -1119,7 +1116,7 @@ CPLErr GDALDriver::QuietDelete( const char *pszName,
 
     CPLPushErrorHandler(CPLQuietErrorHandler);
     GDALDriver * const poDriver =
-        GDALDriver::FromHandle( GDALIdentifyDriver( pszName, papszAllowedDrivers ) );
+        GDALDriver::FromHandle( GDALIdentifyDriver( pszName, nullptr ) );
     CPLPopErrorHandler();
 
     if( poDriver == nullptr )
