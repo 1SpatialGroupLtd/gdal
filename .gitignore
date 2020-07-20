@@ -25,6 +25,5 @@ __pycache__/
 CMakeLists.txt
 *.cmake
 
-# NuGet package manager storage
 gdal/packages*
 gdal/share
