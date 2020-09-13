@@ -3154,7 +3154,7 @@ char* OGRFeature::GetFieldAsSerializedJSon( int iField )
     if( eType == OFTStringList )
     {
         json_object* poObj = json_object_new_array();
-        auto&& papszValues = GetFieldAsStringList(iField);
+        char** papszValues = GetFieldAsStringList(iField);
         for( int i=0; papszValues[i] != nullptr; i++)
         {
             json_object_array_add( poObj,
