@@ -3998,6 +3998,7 @@ int GDALDataset::CloseDependentDatasets()
 /*                            ReportError()                             */
 /************************************************************************/
 
+#ifndef DOXYGEN_XML
 /**
  * \brief Emits an error related to a dataset.
  *
@@ -4068,6 +4069,7 @@ void GDALDataset::ReportErrorV(const char* pszDSName,
         CPLErrorV(eErrClass, err_no, fmt, args);
     }
 }
+#endif
 
 /************************************************************************/
 /*                            GetMetadata()                             */
