@@ -2287,14 +2287,26 @@ const char *OGRFeature::GetFieldAsString( int iField )
         {
             snprintf( szFormat, sizeof(szFormat), "%%.%df",
                 poFDefn->GetPrecision() );
+
+            CPLsnprintf( szTempBuffer, TEMP_BUFFER_SIZE,
+                         szFormat, pauFields[iField].Real );
         }
         else
         {
-            strcpy( szFormat, "%.15g" );
-        }
+            if( poFDefn->GetSubType() == OFSTFloat32 )
+            {
+                OGRFormatFloat(szTempBuffer, TEMP_BUFFER_SIZE,
+                               static_cast<float>(pauFields[iField].Real),
+                               -1, 'g');
+            }
+            else
+            {
+                strcpy( szFormat, "%.15g" );
 
-        CPLsnprintf( szTempBuffer, TEMP_BUFFER_SIZE,
-                  szFormat, pauFields[iField].Real );
+                CPLsnprintf( szTempBuffer, TEMP_BUFFER_SIZE,
+                        szFormat, pauFields[iField].Real );
+            }
+        }
 
         m_pszTmpFieldValue = VSI_STRDUP_VERBOSE( szTempBuffer );
         if( m_pszTmpFieldValue == nullptr )
@@ -2400,8 +2412,10 @@ const char *OGRFeature::GetFieldAsString( int iField )
         char szItem[40] = {};
         char szFormat[64] = {};
         const int nCount = pauFields[iField].RealList.nCount;
+        const bool bIsFloat32 = poFDefn->GetSubType() == OFSTFloat32;
+        const bool bIsZeroWidth = poFDefn->GetWidth() == 0;
 
-        if( poFDefn->GetWidth() != 0 )
+        if( !bIsZeroWidth )
         {
             snprintf( szFormat, sizeof(szFormat), "%%%d.%df",
                       poFDefn->GetWidth(), poFDefn->GetPrecision() );
@@ -2412,10 +2426,20 @@ const char *OGRFeature::GetFieldAsString( int iField )
         CPLString osBuffer;
 
         osBuffer.Printf("(%d:", nCount );
+
         for(int i = 0; i < nCount; i++ )
         {
-            CPLsnprintf( szItem, sizeof(szItem), szFormat,
-                      pauFields[iField].RealList.paList[i] );
+            if( bIsFloat32 && bIsZeroWidth )
+            {
+                OGRFormatFloat(szItem, sizeof(szItem),
+                               static_cast<float>(pauFields[iField].RealList.paList[i]),
+                               -1, 'g');
+            }
+            else
+            {
+                CPLsnprintf( szItem, sizeof(szItem), szFormat,
+                        pauFields[iField].RealList.paList[i] );
+            }
             if( i > 0 )
                 osBuffer += ',';
             osBuffer += szItem;
