@@ -15,6 +15,11 @@
 .idea
 .vscode
 .vs
+.vim
+
+# clangd lsp
+.clangd
+compile_commands.json
 
 # Python
 __pycache__/
@@ -27,3 +32,5 @@ CMakeLists.txt
 
 gdal/packages*
 gdal/share
+
+
