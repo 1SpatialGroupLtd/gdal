@@ -3138,7 +3138,7 @@ aws_secret_access_key = bar
 
 ###############################################################################
 # Read credentials from simulated EC2 instance
-@pytest.mark.skipif(sys.platform not in ('linux', 'linux2', 'win32'), reason='Incorrect platform')
+@pytest.mark.skipif(sys.platform not in ('linux', 'win32'), reason='Incorrect platform')
 def test_vsis3_read_credentials_ec2_imdsv2():
 
     if gdaltest.webserver_port == 0:
@@ -3197,7 +3197,7 @@ def test_vsis3_read_credentials_ec2_imdsv2():
 
 ###############################################################################
 # Read credentials from simulated EC2 instance that only supports IMDSv1
-@pytest.mark.skipif(sys.platform not in ('linux', 'linux2', 'win32'), reason='Incorrect platform')
+@pytest.mark.skipif(sys.platform not in ('linux', 'win32'), reason='Incorrect platform')
 def test_vsis3_read_credentials_ec2_imdsv1():
 
     if gdaltest.webserver_port == 0:
@@ -3244,7 +3244,7 @@ def test_vsis3_read_credentials_ec2_imdsv1():
 ###############################################################################
 # Read credentials from simulated EC2 instance with expiration of the
 # cached credentials
-@pytest.mark.skipif(sys.platform not in ('linux', 'linux2', 'win32'), reason='Incorrect platform')
+@pytest.mark.skipif(sys.platform not in ('linux', 'win32'), reason='Incorrect platform')
 def test_vsis3_read_credentials_ec2_expiration():
 
     if gdaltest.webserver_port == 0:
