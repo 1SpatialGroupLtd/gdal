@@ -5604,7 +5604,8 @@ OGRErr OGRFeature::SetFrom( OGRFeature * poSrcFeature, int bForgiving )
     {
         if( poSrcFeature->GetFieldCount() )
             return OGRERR_FAILURE;
-        return SetFrom( poSrcFeature, nullptr, bForgiving );
+        int dummy = 0;
+        return SetFrom( poSrcFeature, &dummy, bForgiving );
     }
     return SetFrom( poSrcFeature, oMap.data(), bForgiving );
 }
