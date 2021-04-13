@@ -1,43 +1,31 @@
-GDAL - Geospatial Data Abstraction Library
-====
+# GDAL Mirror Branch
 
-[![Build Status](https://github.com/OSGeo/gdal/workflows/Ubuntu%2020.04%20build/badge.svg)](https://github.com/osgeo/gdal/actions?query=workflow%3A%22Ubuntu+20.04+build%22+branch%3Amaster)
-[![Build Status](https://github.com/OSGeo/gdal/workflows/Ubuntu%2018.04%20build/badge.svg)](https://github.com/osgeo/gdal/actions?query=workflow%3A%22Ubuntu+18.04+build%22+branch%3Amaster)
-[![Build Status](https://github.com/OSGeo/gdal/workflows/Ubuntu%2018.04%2032bit%20build/badge.svg)](https://github.com/osgeo/gdal/actions?query=workflow%3A%22Ubuntu+18.04+32bit+build%22+branch%3Amaster)
-[![Build Status](https://github.com/OSGeo/gdal/workflows/MacOS%20build/badge.svg)](https://github.com/osgeo/gdal/actions?query=workflow%3A%22MacOS+build%22+branch%3Amaster)
-[![Build Status](https://github.com/OSGeo/gdal/workflows/Windows%20builds/badge.svg)](https://github.com/osgeo/gdal/actions?query=workflow%3A%22Windows+builds%22+branch%3Amaster)
-[![Build Status](https://github.com/OSGeo/gdal/workflows/Android%20build/badge.svg)](https://github.com/osgeo/gdal/actions?query=workflow%3A%22Android+build%22+branch%3Amaster)
-[![Build Status](https://github.com/OSGeo/gdal/workflows/ASAN%20build/badge.svg)](https://github.com/osgeo/gdal/actions?query=workflow%3A%22ASAN+build%22+branch%3Amaster)
-[![Build Status](https://github.com/OSGeo/gdal/workflows/mingw_w64%20build/badge.svg)](https://github.com/osgeo/gdal/actions?query=workflow%3A%22mingw_w64+build%22+branch%3Amaster)
-[![Build Status](https://github.com/OSGeo/gdal/workflows/CLang%20Static%20Analyzer/badge.svg)](https://github.com/osgeo/gdal/actions?query=workflow%3A%22CLang+Static+Analyzer%22+branch%3Amaster)
-[![Build Status](https://github.com/OSGeo/gdal/workflows/Code%20Checks/badge.svg)](https://github.com/osgeo/gdal/actions?query=workflow%3A%22Code+Checks%22+branch%3Amaster)
-[![Build Status](https://travis-ci.com/OSGeo/gdal.svg?branch=master)](https://travis-ci.com/OSGeo/gdal)
-[![Build status](https://ci.appveyor.com/api/projects/status/jtwx0pcr0y01i17p/branch/master?svg=true)](https://ci.appveyor.com/project/OSGeo/gdal)
-[![Build Status](https://scan.coverity.com/projects/749/badge.svg?flat=1)](https://scan.coverity.com/projects/gdal)
-[![Documentation build Status](https://dev.azure.com/osgeo/gdal/_apis/build/status/OSGeo.gdal.doc?branchName=master&jobName=Documentation)](https://dev.azure.com/osgeo/gdal/_build/latest?definitionId=2&branchName=master&jobName=Documentation)
-[![Fuzzing Status](https://oss-fuzz-build-logs.storage.googleapis.com/badges/gdal.svg)](https://bugs.chromium.org/p/oss-fuzz/issues/list?sort=-opened&can=1&q=proj:gdal)
+This repository exists to allow us to build a custom branch of gdal with changes required for 1int to work optimally.
 
-GDAL is an open source X/MIT licensed translator library for raster and vector geospatial data formats.
+## Branches
 
-* Main site: https://www.gdal.org - Developer and user docs, links to other resources
-* GIT repository: https://github.com/OSGeo/gdal
-* Bug tracker: https://github.com/OSGeo/gdal/issues
-* Download: https://download.osgeo.org/gdal
-* Wiki: https://trac.osgeo.org/gdal - Various user and developer contributed documentation and hints
-* Mailing list: https://lists.osgeo.org/mailman/listinfo/gdal-dev
+This repo contains 2 branches, master and source.
 
-### How to contribute
+- master: This branch is the one used to build the gdal artifacts by [mvn_gdal_build_w64](https://bitbucket.org/1spatial/mvn_gdal_build_w64/src/master/) and [mvn_gdal_build_lx86_64](https://bitbucket.org/1spatial/mvn_gdal_build_lx86_64/src/master/). It should be equal to a certain tag of the gdal public repo, with our changes applied on top.
 
-See [CONTRIBUTING.md](CONTRIBUTING.md)
+- source: This should be an exact mirror of the gdal public repo at a certain tag. This should be equal to master without the custom changed we have made.
 
-### Docker images
+## How to update
 
-See [gdal/docker/](gdal/docker/)
+To update the master to a new tag of the gdal branch:
 
-### Code of Conduct
+- If you haven't already, add the gdal github repo as a new remote `git remote add github https://github.com/OSGeo/gdal.git`
 
-See [gdal/doc/source/community/code_of_conduct.rst](gdal/doc/source/community/code_of_conduct.rst)
+- Switch to the source branch `git checkout source`
 
-### Citing GDAL/OGR in publications
+- Fetch the commits from github `git fetch github`
 
-See [CITATION](CITATION)
+- Reset the branch to the desired tag `git reset --hard tags/v3.2.2`
+
+- Verify that the latest commit is a 'Prepare for GDAL' commit.
+
+- Switch back to master
+
+- Rebase this branch on top of the source branch (avoid merging, as we don't want master to get cluttered with merge commits)
+
+- Push both branches
