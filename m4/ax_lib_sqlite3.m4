@@ -76,7 +76,6 @@ AC_DEFUN([AX_LIB_SQLITE3],
 
             unset ac_cv_lib_sqlite3_sqlite3_open
             saved_LIBS="$LIBS"
-            LIBS=""
             AC_CHECK_LIB(sqlite3,sqlite3_open,LIB_SQLITE3_FOUND=yes,LIB_SQLITE3_FOUND=no,-L$ac_sqlite3_path/lib)
             LIBS="$saved_LIBS"
             if test "$LIB_SQLITE3_FOUND" = "yes"; then
