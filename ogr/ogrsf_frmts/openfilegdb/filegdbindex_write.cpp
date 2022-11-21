@@ -1196,7 +1196,7 @@ bool FileGDBTable::CreateSpatialIndex()
     // Configurable only for debugging purposes
     int nDepth = atoi(CPLGetConfigOption("OPENFILEGDB_FORCE_SPX_DEPTH", "0"));
 
-    const auto writeValueFunc = [](std::vector<GByte>& abyPage,
+    const auto writeValueFunc = +[](std::vector<GByte>& abyPage,
                                    const typename ValueOIDPair::first_type& nval,
                                    int /* maxStrSize */)
     {
@@ -1262,7 +1262,7 @@ bool FileGDBTable::CreateAttributeIndex(const FileGDBIndex* poIndex)
                 }
             }
 
-            const auto writeValueFunc = [](std::vector<GByte>& abyPage,
+            const auto writeValueFunc = +[](std::vector<GByte>& abyPage,
                                            const typename ValueOIDPair::first_type& val,
                                            int /* maxStrSize */)
             {
@@ -1287,7 +1287,7 @@ bool FileGDBTable::CreateAttributeIndex(const FileGDBIndex* poIndex)
                 }
             }
 
-            const auto writeValueFunc = [](std::vector<GByte>& abyPage,
+            const auto writeValueFunc = +[](std::vector<GByte>& abyPage,
                                            const typename ValueOIDPair::first_type& val,
                                            int /* maxStrSize */)
             {
@@ -1312,7 +1312,7 @@ bool FileGDBTable::CreateAttributeIndex(const FileGDBIndex* poIndex)
                 }
             }
 
-            const auto writeValueFunc = [](std::vector<GByte>& abyPage,
+            const auto writeValueFunc = +[](std::vector<GByte>& abyPage,
                                            const typename ValueOIDPair::first_type& val,
                                            int /* maxStrSize */)
             {
@@ -1340,7 +1340,7 @@ bool FileGDBTable::CreateAttributeIndex(const FileGDBIndex* poIndex)
             }
             m_apoFields[iField]->m_eType = eFieldType;
 
-            const auto writeValueFunc = [](std::vector<GByte>& abyPage,
+            const auto writeValueFunc = +[](std::vector<GByte>& abyPage,
                                            const typename ValueOIDPair::first_type& val,
                                            int /* maxStrSize */)
             {
@@ -1396,7 +1396,7 @@ bool FileGDBTable::CreateAttributeIndex(const FileGDBIndex* poIndex)
             if( maxStrSize < MAX_CAR_COUNT_INDEXED_STR )
                 maxStrSize ++;
 
-            const auto writeValueFunc = [](std::vector<GByte>& abyPage,
+            const auto writeValueFunc = +[](std::vector<GByte>& abyPage,
                                            const typename ValueOIDPair::first_type& val,
                                            int l_maxStrSize)
             {
