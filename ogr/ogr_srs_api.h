@@ -633,6 +633,12 @@ OGRSpatialReferenceH CPL_DLL *OSRFindMatches(OGRSpatialReferenceH hSRS,
                                              char **papszOptions,
                                              int *pnEntries,
                                              int **ppanMatchConfidence);
+OGRSpatialReferenceH CPL_DLL OSRFindBestMatch(OGRSpatialReferenceH hSRS,
+                                             char **papszOptions,
+                                             char *pszPreferredAuthority,
+                                             int nMinimumMatchConfidence);
+
+
 void CPL_DLL OSRFreeSRSArray(OGRSpatialReferenceH *pahSRS);
 
 int CPL_DLL OSREPSGTreatsAsLatLong(OGRSpatialReferenceH hSRS);

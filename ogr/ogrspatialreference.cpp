@@ -10137,6 +10137,44 @@ OGRSpatialReferenceH *OSRFindMatches(OGRSpatialReferenceH hSRS,
 }
 
 /************************************************************************/
+/*                           OSRFindBestMatch()                           */
+/************************************************************************/
+
+/**
+ * \brief Try to identify the best match between the passed SRS and a related
+ * SRS in a catalog.
+ *
+ * This is a wrapper over OGRSpatialReference::FindMatches() that takes care
+ * of filtering its output.
+ * Only matches whose confidence is greater or equal to nMinimumMatchConfidence
+ * will be considered. If there is a single match, it is returned.
+ * If there are several matches, only return the one under the
+ * pszPreferredAuthority, if there is a single one under that authority.
+ *
+ * This function is the same as OGRSpatialReference::FindBestMatch().
+ *
+ * @param hSRS SRS to match
+ * @param nMinimumMatchConfidence Minimum match confidence (value between 0 and
+ * 100). If set to 0, 90 is used.
+ * @param pszPreferredAuthority Preferred CRS authority. If set to nullptr,
+ * "EPSG" is used.
+ * @param papszOptions NULL terminated list of options or NULL. No option is
+ * defined at time of writing.
+ *
+ * @return a new OGRSpatialReference* object to free with Release(), or nullptr
+ *
+ * @since GDAL 3.6
+ */
+OGRSpatialReferenceH OSRFindBestMatch(OGRSpatialReferenceH hSRS,
+                                     char **papszOptions, char *pszPreferredAuthority,
+                                     int nMinimumMatchConfidence)
+{
+    VALIDATE_POINTER1(hSRS, "OSRFindBestMatch", nullptr);
+
+    return ToHandle(ToPointer(hSRS)->FindBestMatch(nMinimumMatchConfidence, pszPreferredAuthority, papszOptions));
+}
+
+/************************************************************************/
 /*                           OSRFreeSRSArray()                          */
 /************************************************************************/
 

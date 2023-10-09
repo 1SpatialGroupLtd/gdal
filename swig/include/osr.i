@@ -567,6 +567,11 @@ public:
   }
 #endif
 
+%newobject FindBestMatch;
+  OSRSpatialReferenceShadow *FindBestMatch(char *preferredAuthority = NULL, int minimumMatchConfidence = 0, char **options = NULL) {
+    return (OSRSpatialReferenceShadow *) OSRFindBestMatch(self, options, preferredAuthority, minimumMatchConfidence);
+  }
+
   OGRErr SetProjection( char const *arg ) {
     return OSRSetProjection( self, arg );
   }
