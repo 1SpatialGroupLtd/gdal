@@ -136,11 +136,11 @@ target_compile_options(cpl_vsi_mem PRIVATE ${GDAL_CXX_WARNING_FLAGS} ${WFLAG_OLD
 set_property(TARGET cpl_vsi_mem PROPERTY POSITION_INDEPENDENT_CODE ${GDAL_OBJECT_LIBRARIES_POSITION_INDEPENDENT_CODE})
 target_include_directories(cpl_vsi_mem PRIVATE ${CMAKE_CURRENT_SOURCE_DIR} ${CMAKE_CURRENT_BINARY_DIR})
 
-include(CheckCXXCompilerFlag)
-check_cxx_compiler_flag("-std=c++17" COMPILER_SUPPORTS_CXX17)
-if(COMPILER_SUPPORTS_CXX17)
+#include(CheckCXXCompilerFlag)
+#check_cxx_compiler_flag("-std=c++17" COMPILER_SUPPORTS_CXX17)
+#if(COMPILER_SUPPORTS_CXX17)
     target_compile_features(cpl_vsi_mem PRIVATE cxx_std_17)
-endif()
+#endif()
 
 if (WIN32)
   target_sources(cpl PRIVATE cpl_vsil_win32.cpp)
